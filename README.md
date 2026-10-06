@@ -2,11 +2,20 @@
 
 A modern web application and food recommendation agent that suggests all classic and basic everyday recipes based on the ingredients you currently have at home, your recent cooking history, and your favorite global cuisines.
 
+## 🖼️ Application Screenshots
+
+### 🏠 PantryChef AI - Home Page
+
+![PantryChef AI Home](./e5e37ab7-ba24-4fd5-ae6d-27ef3b762b87.png)
+
+![PantryChef AI History](./4c2d0e14-fd3f-4503-b272-5e445246fdfb.png)
+
 ---
 
 ## ✨ What's New
 
 ### 1. 🕒 Cooking History & Balanced Recommendations
+
 - **Cooking History Log**: Whenever you finish a recipe and click **"I'm Done Cooking!"**, it is automatically logged into your personal history with timestamp, cuisine, and nutritional stats.
 - **History Spotlight on Home Page**: An AI recommendation section appears on the home page analyzing what you cooked in previous days:
   - *Cuisine Balancing*: If you had Italian pasta yesterday, the agent suggests flavorful Indian curries or Chinese wok stir-fries.
@@ -14,7 +23,9 @@ A modern web application and food recommendation agent that suggests all classic
 - **Cooking History Modal**: View your chronological cooking log with a 1-click **"Cook Again"** shortcut.
 
 ### 2. 🌍 Cuisine Categories Filter
+
 Explore recipes by authentic culinary styles:
+
 - 🇮🇳 **Indian Food**: Dal Tadka, Chana Masala, Chicken Curry, Paneer Bhurji, Aloo Jeera, Jeera Rice, Dal Khichdi.
 - 🇮🇹 **Italian Food**: Spaghetti Aglio e Olio, Classic Marinara Pasta, Creamy Garlic Butter Noodles, Crispy Garlic Bread.
 - 🇨🇳 **Chinese Cuisine**: Chili Garlic Street Noodles, Wok Veg Fried Rice, Egg Fried Rice, Silky Egg Drop Soup, Garlic Soy Veggie Stir-Fry, Sweet & Sour Paneer/Tofu.
@@ -23,6 +34,7 @@ Explore recipes by authentic culinary styles:
 - 🥗 **Mediterranean**: Shakshuka, Cucumber Tomato Feta Salad.
 
 ### 3. ➕ Add Custom Recipes to Database
+
 - **Search-to-Add Feature**: If you search for any recipe that isn't currently in the catalog (e.g. *Sushi*, *Ramen*, or *Butter Chicken*), a smart prompt appears: **"Add [Dish] to Database"**.
 - **Header "+ Add Recipe"**: Add your personal family recipes anytime with custom ingredients, required tags, cooking steps, chef tips, and images.
 - **Persistent Storage**: All custom recipes are saved to your browser database and immediately integrated into pantry matching, cuisine tabs, and search!
@@ -31,7 +43,6 @@ Explore recipes by authentic culinary styles:
 
 ## 🚀 Getting Started
 
-The app is running locally at:
-👉 **[http://localhost:8080](http://localhost:8080)**
+The app is running locally at: 👉 [**http://localhost:8080**](http://localhost:8080)
 
-Or open [index.html](file:///C:/Users/siddh/.gemini/antigravity/scratch/recipe-agent/index.html) directly in any web browser.
+Or open index.html directly in any web browser.
