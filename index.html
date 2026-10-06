@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PantryChef AI - Smart Food Recommendation Agent</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800 flex flex-col">
+
+  <!-- TOP NAVIGATION HEADER -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+      
+      <!-- Brand Logo -->
+      <div class="flex items-center gap-3 cursor-pointer" onclick="resetFilters()">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-orange-500 to-amber-400 flex items-center justify-center text-white shadow-md shadow-orange-500/20">
+          <i class="fa-solid fa-utensils text-lg"></i>
+        </div>
+        <div>
+          <span class="text-xl font-bold font-serif tracking-tight text-slate-900 flex items-center gap-1.5">
+            PantryChef <span class="text-orange-500">AI</span>
+          </span>
+          <p class="text-xs text-slate-500 hidden sm:block">Cook delicious meals with ingredients you have</p>
+        </div>
+      </div>
+
+      <!-- Quick Search Bar -->
+      <div class="flex-1 max-w-md hidden md:block">
+        <div class="relative">
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+          <input 
+            type="text" 
+            id="searchInput"
+            placeholder="Search recipes, cuisines, or ingredients (e.g. Scrambled eggs, Dal, Noodles)..." 
+            class="w-full pl-9 pr-4 py-2 bg-slate-100 hover:bg-slate-50 focus:bg-white border border-transparent focus:border-orange-400 rounded-full text-sm outline-none transition"
+          >
+          <button id="clearSearchBtn" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+            <i class="fa-solid fa-xmark text-xs"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Header Action Buttons -->
+      <div class="flex items-center gap-2">
+        
+        <!-- Add Custom Recipe Button -->
+        <button 
+          id="openAddRecipeBtn" 
+          class="flex items-center gap-1.5 px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-lg text-xs sm:text-sm font-semibold border border-emerald-200 transition"
+          title="Add a new custom recipe to your database"
+        >
+          <i class="fa-solid fa-plus-circle text-emerald-600"></i>
+          <span class="hidden sm:inline">Add Recipe</span>
+        </button>
+
+        <!-- Cooking History Button -->
+        <button 
+          id="openHistoryBtn" 
+          class="flex items-center gap-1.5 px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-800 rounded-lg text-xs sm:text-sm font-semibold border border-blue-200 transition relative"
+          title="View what you have cooked previously"
+        >
+          <i class="fa-solid fa-clock-rotate-left text-blue-600"></i>
+          <span class="hidden sm:inline">History</span>
+          <span id="historyCountBadge" class="bg-blue-600 text-white rounded-full px-1.5 py-0.2 text-[10px] ml-0.5">0</span>
+        </button>
+
+        <!-- Surprise Me Button -->
+        <button 
+          id="surpriseBtn" 
+          class="flex items-center gap-2 px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 rounded-lg text-xs sm:text-sm font-medium border border-amber-200 transition"
+          title="Surprise me with a random ready recipe"
+        >
+          <i class="fa-solid fa-dice text-amber-600"></i>
+          <span class="hidden lg:inline">Surprise</span>
+        </button>
+
+        <!-- Favorites Button -->
+        <button 
+          id="favoritesToggleBtn" 
+          class="flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs sm:text-sm font-medium transition"
+          title="View favorite recipes"
+        >
+          <i class="fa-solid fa-heart text-red-500"></i>
+          <span class="hidden lg:inline">Saved</span>
+          <span id="favoritesCountBadge" class="bg-red-500 text-white rounded-full px-1.5 py-0.2 text-[10px] ml-0.5 hidden">0</span>
+        </button>
+
+        <!-- Ask Chef AI Button -->
+        <button 
+          id="openChatBtn" 
+          class="flex items-center gap-1.5 px-3.5 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-xs sm:text-sm font-semibold shadow-sm shadow-orange-500/30 transition"
+        >
+          <i class="fa-solid fa-wand-magic-sparkles"></i>
+          <span class="hidden sm:inline">Chef AI</span>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- MAIN APP CONTAINER -->
+  <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      
+      <!-- LEFT COLUMN: PANTRY SELECTION DRAWER / BOARD (col-span-4) -->
+      <aside class="lg:col-span-4 bg-white rounded-2xl p-5 border border-slate-200 shadow-sm sticky top-20">
+        
+        <!-- Pantry Header -->
+        <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-4">
+          <div class="flex items-center gap-2">
+            <span class="text-xl">🧺</span>
+            <div>
+              <h2 class="font-bold text-slate-900 text-base leading-tight">My Kitchen Pantry</h2>
+              <p class="text-xs text-slate-500">Tap ingredients you have at home</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span id="selectedCountBadge" class="px-2 py-0.5 bg-orange-100 text-orange-700 text-xs font-semibold rounded-full">0 selected</span>
+            <button 
+              id="clearPantryBtn" 
+              class="text-xs text-slate-400 hover:text-red-500 font-medium transition" 
+              title="Clear all selected ingredients"
+            >
+              Reset
+            </button>
+          </div>
+        </div>
+
+        <!-- Custom Ingredient Quick Add -->
+        <div class="mb-4">
+          <div class="flex gap-2">
+            <div class="relative flex-1">
+              <i class="fa-solid fa-plus absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+              <input 
+                type="text" 
+                id="customIngredientInput" 
+                placeholder="Type any ingredient (e.g. spinach, oats)..." 
+                class="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:border-orange-400 outline-none"
+              >
+            </div>
+            <button 
+              id="addCustomIngredientBtn" 
+              class="px-3 py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-medium transition"
+            >
+              Add
+            </button>
+          </div>
+        </div>
+
+        <!-- Pantry Staples Quick Presets -->
+        <div class="p-3 bg-amber-50/70 border border-amber-200/60 rounded-xl mb-4 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-mortar-pestle text-amber-600 text-sm"></i>
+            <div>
+              <p class="text-xs font-semibold text-amber-900">Basic Pantry Staples</p>
+              <p class="text-[11px] text-amber-700">Salt, pepper, water & cooking oil</p>
+            </div>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="staplesToggle" class="sr-only peer" checked>
+            <div class="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-orange-500"></div>
+          </label>
+        </div>
+
+        <!-- Active Selected Tags Bar (if any) -->
+        <div id="activeTagsContainer" class="mb-4 hidden">
+          <div class="flex items-center justify-between text-xs text-slate-500 mb-1.5 font-medium">
+            <span>In Your Basket:</span>
+            <button id="quickStaplesPresetBtn" class="text-orange-600 hover:underline text-[11px]">+ Common Staples</button>
+          </div>
+          <div id="activeTagsList" class="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pr-1"></div>
+        </div>
+
+        <!-- Categorized Ingredients Chips -->
+        <div class="space-y-4 max-h-[52vh] overflow-y-auto pr-1" id="pantryCategoriesContainer">
+          <!-- Dynamically filled by app.js -->
+        </div>
+
+      </aside>
+
+      <!-- RIGHT COLUMN: RECOMMENDATIONS & DISH FEED (col-span-8) -->
+      <section class="lg:col-span-8 space-y-6">
+
+        <!-- SMART AGENT RATIONALE BANNER -->
+        <div id="agentBanner" class="agent-banner rounded-2xl p-5 shadow-sm">
+          <div class="flex items-start gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-white border border-orange-200 flex-shrink-0 flex items-center justify-center text-2xl shadow-sm">
+              👨‍🍳
+            </div>
+            <div class="flex-1">
+              <div class="flex items-center justify-between flex-wrap gap-2">
+                <span id="agentGreeting" class="text-xs font-bold uppercase tracking-wider text-orange-700 bg-orange-100/80 px-2.5 py-0.5 rounded-full">
+                  AI Recommendation Agent
+                </span>
+                <span id="readyCounterBadge" class="text-xs font-semibold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full flex items-center gap-1.5 hidden">
+                  <span class="w-2 h-2 rounded-full bg-emerald-500 live-pulse"></span>
+                  <span id="readyCounterText">3 recipes ready</span>
+                </span>
+              </div>
+              <h3 id="agentHeadline" class="text-lg font-bold text-slate-900 mt-1.5">
+                Pick your available ingredients to start!
+              </h3>
+              <p id="agentAdvice" class="text-sm text-slate-600 mt-1 leading-relaxed">
+                Select ingredients from the pantry board on the left. The agent will calculate recipes where you have 100% of the ingredients or need just 1 quick substitution.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- HISTORY-BASED RECOMMENDATIONS SPOTLIGHT SECTION -->
+        <div id="historySpotlightSection" class="history-spotlight rounded-2xl p-5 shadow-sm hidden">
+          <div class="flex items-center justify-between flex-wrap gap-2 mb-3">
+            <div class="flex items-center gap-2">
+              <span class="text-xl">🕒</span>
+              <div>
+                <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                  <span>Recommended From Cooking History</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 font-bold uppercase tracking-wider">Smart Balance</span>
+                </h3>
+                <p id="historyRationaleText" class="text-xs text-slate-600 mt-0.5"></p>
+              </div>
+            </div>
+            <button id="viewAllHistoryBtn" class="text-xs font-semibold text-blue-700 hover:text-blue-900 flex items-center gap-1 transition">
+              <span>View Log</span>
+              <i class="fa-solid fa-arrow-right text-[10px]"></i>
+            </button>
+          </div>
+          <!-- Spotlight Dish Cards -->
+          <div id="historyCardsGrid" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <!-- Dynamically injected by app.js -->
+          </div>
+        </div>
+
+        <!-- FILTER & SORT TOOLBAR -->
+        <div class="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-3">
+          
+          <!-- Cuisine Filter Pills (Indian, Italian, Chinese, Mexican, etc.) -->
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                <i class="fa-solid fa-globe text-orange-500"></i> Cuisines:
+              </span>
+            </div>
+            <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar" id="cuisineTabsContainer">
+              <!-- Dynamically rendered by app.js -->
+            </div>
+          </div>
+
+          <!-- Meal Category Pills (Breakfast, Lunch, Dinner, Snack, etc.) -->
+          <div class="pt-2 border-t border-slate-100">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                <i class="fa-solid fa-utensils text-orange-500"></i> Meal Type:
+              </span>
+            </div>
+            <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar" id="categoryTabsContainer">
+              <button class="category-pill px-3.5 py-1.5 rounded-full font-medium transition bg-slate-900 text-white" data-cat="All">All Types</button>
+              <button class="category-pill px-3.5 py-1.5 rounded-full font-medium transition bg-slate-100 hover:bg-slate-200 text-slate-700" data-cat="Breakfast">🍳 Breakfast</button>
+              <button class="category-pill px-3.5 py-1.5 rounded-full font-medium transition bg-slate-100 hover:bg-slate-200 text-slate-700" data-cat="Lunch">🍛 Lunch</button>
+              <button class="category-pill px-3.5 py-1.5 rounded-full font-medium transition bg-slate-100 hover:bg-slate-200 text-slate-700" data-cat="Dinner">🍝 Dinner</button>
+              <button class="category-pill px-3.5 py-1.5 rounded-full font-medium transition bg-slate-100 hover:bg-slate-200 text-slate-700" data-cat="Snack">🥪 Snacks</button>
+              <button class="category-pill px-3.5 py-1.5 rounded-full font-medium transition bg-slate-100 hover:bg-slate-200 text-slate-700" data-cat="Side Dish">🥔 Sides</button>
+              <button class="category-pill px-3.5 py-1.5 rounded-full font-medium transition bg-slate-100 hover:bg-slate-200 text-slate-700" data-cat="Soup">🥣 Soups & Salads</button>
+              <button class="category-pill px-3.5 py-1.5 rounded-full font-medium transition bg-slate-100 hover:bg-slate-200 text-slate-700" data-cat="Dessert">🧁 Desserts</button>
+            </div>
+          </div>
+
+          <!-- Secondary Filters: Time, Dietary, Sort -->
+          <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100 text-xs">
+            
+            <div class="flex flex-wrap items-center gap-2">
+              <!-- Prep Time Filter -->
+              <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5">
+                <i class="fa-regular fa-clock text-slate-400"></i>
+                <label for="timeFilter" class="text-slate-500 font-medium">Time:</label>
+                <select id="timeFilter" class="bg-transparent font-semibold text-slate-700 outline-none cursor-pointer">
+                  <option value="All">Any Time</option>
+                  <option value="15">&lt; 15 mins (Fast)</option>
+                  <option value="25">&lt; 25 mins</option>
+                  <option value="40">&lt; 40 mins</option>
+                </select>
+              </div>
+
+              <!-- Dietary Filter -->
+              <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5">
+                <i class="fa-solid fa-seedling text-slate-400"></i>
+                <label for="dietFilter" class="text-slate-500 font-medium">Diet:</label>
+                <select id="dietFilter" class="bg-transparent font-semibold text-slate-700 outline-none cursor-pointer">
+                  <option value="All">All Diets</option>
+                  <option value="Vegetarian">Vegetarian</option>
+                  <option value="High-Protein">High-Protein</option>
+                  <option value="Vegan">Vegan</option>
+                  <option value="Gluten-Free">Gluten-Free</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Recipe Result Count & Reset Filters -->
+            <div class="flex items-center gap-2 ml-auto">
+              <span id="resultsCountText" class="text-slate-500 font-medium">Showing 0 recipes</span>
+              <button onclick="resetFilters()" class="text-xs text-orange-600 hover:underline font-semibold ml-2">Reset</button>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- RECIPE CARDS GRID -->
+        <div id="recipeGrid" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <!-- Dynamically rendered by app.js -->
+        </div>
+
+        <!-- EMPTY STATE (if no recipes match) -->
+        <div id="emptyState" class="hidden bg-white rounded-2xl p-10 text-center border border-slate-200 shadow-sm">
+          <div class="w-16 h-16 rounded-full bg-orange-100 text-orange-500 mx-auto flex items-center justify-center text-2xl mb-4">
+            <i class="fa-solid fa-utensils"></i>
+          </div>
+          <h3 class="text-lg font-bold text-slate-800">No matching recipes found</h3>
+          <p id="emptyStateDesc" class="text-sm text-slate-500 max-w-md mx-auto mt-1 mb-5">
+            Try adjusting your pantry selection or clear some filters to see classic recipes.
+          </p>
+
+          <!-- Add Missing Recipe Call-to-Action -->
+          <div class="p-4 bg-orange-50 border border-orange-200 rounded-2xl max-w-md mx-auto mb-5 text-left flex items-start gap-3">
+            <span class="text-2xl">✨</span>
+            <div class="flex-1">
+              <h4 class="text-xs font-bold text-orange-950 uppercase tracking-wider">Searched recipe is missing?</h4>
+              <p class="text-xs text-orange-800 mt-0.5">
+                Add your favorite dish directly to your database with your own ingredients and steps!
+              </p>
+              <button id="emptyStateAddRecipeBtn" class="mt-3 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-bold shadow-sm transition flex items-center gap-1.5">
+                <i class="fa-solid fa-plus text-xs"></i>
+                <span id="emptyStateAddBtnText">Add Recipe to Database</span>
+              </button>
+            </div>
+          </div>
+
+          <button onclick="resetFilters()" class="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-sm font-semibold shadow transition">
+            Reset Filters & View All
+          </button>
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+
+  <!-- INTERACTIVE COOKING MODE MODAL -->
+  <div id="cookingModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay hidden">
+    <div class="bg-white rounded-3xl max-w-3xl w-full max-h-[92vh] overflow-hidden flex flex-col shadow-2xl modal-content border border-slate-100">
+      
+      <!-- Modal Header Image & Top Controls -->
+      <div class="relative h-56 sm:h-64 w-full bg-slate-900 flex-shrink-0">
+        <img id="modalRecipeImage" src="" alt="Recipe" class="w-full h-full object-cover opacity-85">
+        <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/40 to-transparent"></div>
+        
+        <!-- Close & Favorite Buttons -->
+        <div class="absolute top-4 right-4 flex items-center gap-2">
+          <button id="modalFavBtn" class="w-10 h-10 rounded-full bg-white/90 hover:bg-white text-slate-700 flex items-center justify-center shadow-lg transition">
+            <i class="fa-solid fa-heart text-base"></i>
+          </button>
+          <button id="modalCloseBtn" class="w-10 h-10 rounded-full bg-white/90 hover:bg-white text-slate-800 flex items-center justify-center shadow-lg transition">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+
+        <!-- Recipe Header Meta Details -->
+        <div class="absolute bottom-4 left-6 right-6 text-white">
+          <div class="flex items-center gap-2 flex-wrap mb-2">
+            <span id="modalRecipeCategory" class="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider bg-orange-500/90 backdrop-blur-sm"></span>
+            <span id="modalRecipeCuisine" class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-white/20 backdrop-blur-sm"></span>
+            <span id="modalMatchBadge" class="px-2.5 py-0.5 rounded-full text-xs font-bold"></span>
+          </div>
+          <h2 id="modalRecipeTitle" class="text-2xl sm:text-3xl font-bold font-serif leading-tight"></h2>
+          <p id="modalRecipeDesc" class="text-xs sm:text-sm text-slate-300 mt-1 line-clamp-2"></p>
+        </div>
+      </div>
+
+      <!-- Modal Body Content -->
+      <div class="flex-1 overflow-y-auto p-6 space-y-6">
+
+        <!-- Stats Bar: Servings Scaler, Time, Nutrition -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          
+          <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 text-center">
+            <p class="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Total Time</p>
+            <p id="modalTotalTime" class="text-base font-bold text-slate-800 mt-0.5 flex items-center justify-center gap-1">
+              <i class="fa-regular fa-clock text-orange-500 text-xs"></i> 15 mins
+            </p>
+          </div>
+
+          <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 text-center">
+            <p class="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Calories</p>
+            <p id="modalCalories" class="text-base font-bold text-slate-800 mt-0.5 flex items-center justify-center gap-1">
+              <i class="fa-solid fa-fire text-amber-500 text-xs"></i> 320 kcal
+            </p>
+          </div>
+
+          <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 text-center">
+            <p class="text-[11px] font-medium text-slate-400 uppercase tracking-wider">Protein</p>
+            <p id="modalProtein" class="text-base font-bold text-slate-800 mt-0.5 flex items-center justify-center gap-1">
+              <i class="fa-solid fa-dumbbell text-indigo-500 text-xs"></i> 14g
+            </p>
+          </div>
+
+          <!-- Servings Scaler -->
+          <div class="bg-orange-50/70 p-3 rounded-2xl border border-orange-200 text-center">
+            <p class="text-[11px] font-medium text-orange-700 uppercase tracking-wider">Servings</p>
+            <div class="flex items-center justify-center gap-2 mt-0.5">
+              <button id="servingsMinusBtn" class="w-6 h-6 rounded-full bg-white text-orange-700 font-bold border border-orange-200 hover:bg-orange-100 flex items-center justify-center text-xs">-</button>
+              <span id="servingsCount" class="font-bold text-orange-900 text-sm">2</span>
+              <button id="servingsPlusBtn" class="w-6 h-6 rounded-full bg-white text-orange-700 font-bold border border-orange-200 hover:bg-orange-100 flex items-center justify-center text-xs">+</button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Missing Items / Substitution Notice (if any) -->
+        <div id="modalSubstitutionAlert" class="hidden p-4 bg-amber-50 border border-amber-200 rounded-2xl">
+          <div class="flex items-start gap-3">
+            <i class="fa-solid fa-lightbulb text-amber-600 text-lg mt-0.5"></i>
+            <div>
+              <p class="text-xs font-bold text-amber-900">Missing ingredients? Chef Remy's Substitution Hacks:</p>
+              <ul id="modalSubstitutionsList" class="text-xs text-amber-800 mt-1 list-disc list-inside space-y-0.5"></ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Kitchen Assistant Built-in Timer -->
+        <div class="bg-slate-900 text-white rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-orange-500 flex items-center justify-center text-white">
+              <i class="fa-solid fa-stopwatch text-lg"></i>
+            </div>
+            <div>
+              <p class="text-xs font-semibold text-slate-300">Kitchen Cooking Timer</p>
+              <p id="timerDisplay" class="text-2xl font-mono font-bold tracking-wider text-orange-400">05:00</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="timerPreset5" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium">5m</button>
+            <button id="timerPreset10" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium">10m</button>
+            <button id="timerStartBtn" class="px-4 py-1.5 rounded-lg bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold transition">Start</button>
+            <button id="timerResetBtn" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium">Reset</button>
+          </div>
+        </div>
+
+        <!-- Ingredients Checklist -->
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="font-bold text-slate-900 text-base flex items-center gap-2">
+              <span>🥕 Ingredients Checklist</span>
+            </h4>
+            <span class="text-xs text-slate-400">Check off as you prep</span>
+          </div>
+          <div id="modalIngredientsList" class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Step-by-Step Instructions -->
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="font-bold text-slate-900 text-base flex items-center gap-2">
+              <span>🍳 Step-by-Step Cooking Guide</span>
+            </h4>
+            <span id="stepsProgressText" class="text-xs font-semibold text-orange-600">0 of 5 steps completed</span>
+          </div>
+          <div id="modalStepsList" class="space-y-3">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+        <!-- Chef's Secret Tip Card -->
+        <div id="modalChefTipCard" class="bg-orange-50/70 border border-orange-200/80 rounded-2xl p-4 flex items-start gap-3">
+          <span class="text-xl">💡</span>
+          <div>
+            <p class="text-xs font-bold text-orange-950 uppercase tracking-wider">Chef's Secret Tip</p>
+            <p id="modalChefTip" class="text-xs text-orange-900 mt-0.5 leading-relaxed"></p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+        <button id="modalDoneBtn" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm shadow-md shadow-emerald-600/20 transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-check"></i>
+          <span>I'm Done Cooking! (Log to History)</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- COOKING HISTORY DRAWER / MODAL -->
+  <div id="historyModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay hidden">
+    <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl modal-content border border-slate-100 overflow-hidden">
+      
+      <!-- History Modal Header -->
+      <div class="p-5 bg-slate-900 text-white flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-lg">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-base leading-tight">My Cooking History</h3>
+            <p class="text-xs text-slate-300">Meals you cooked in previous days</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button id="clearHistoryBtn" class="text-xs text-slate-400 hover:text-red-400 transition font-medium px-2 py-1">
+            Clear History
+          </button>
+          <button id="closeHistoryBtn" class="text-slate-400 hover:text-white transition w-8 h-8 rounded-lg flex items-center justify-center">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- History List -->
+      <div id="historyItemsList" class="flex-1 overflow-y-auto p-5 space-y-3 bg-slate-50">
+        <!-- Dynamically injected by app.js -->
+      </div>
+
+      <!-- History Footer Summary -->
+      <div class="p-4 bg-white border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
+        <span id="historySummaryText">0 meals cooked</span>
+        <span class="text-blue-600 font-semibold">Chef AI uses this history to balance your diet!</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ADD CUSTOM RECIPE TO DATABASE MODAL -->
+  <div id="addRecipeModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay hidden">
+    <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[92vh] flex flex-col shadow-2xl modal-content border border-slate-100 overflow-hidden">
+      
+      <!-- Add Recipe Header -->
+      <div class="p-5 bg-slate-900 text-white flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center text-lg">
+            <i class="fa-solid fa-plus"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-base leading-tight">Add Recipe to Database</h3>
+            <p class="text-xs text-slate-300">Add any missing recipe to your permanent catalog</p>
+          </div>
+        </div>
+        <button id="closeAddRecipeBtn" class="text-slate-400 hover:text-white transition w-8 h-8 rounded-lg flex items-center justify-center">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Add Recipe Form Body -->
+      <form id="addRecipeForm" class="flex-1 overflow-y-auto p-6 space-y-4">
+        
+        <!-- Recipe Title -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Recipe Title *</label>
+          <input 
+            type="text" 
+            id="formTitle" 
+            required 
+            placeholder="e.g. Paneer Butter Masala, Kung Pao Chicken, etc." 
+            class="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-emerald-500 outline-none"
+          >
+        </div>
+
+        <!-- Cuisine & Category -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Cuisine Category *</label>
+            <select id="formCuisine" class="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-emerald-500 outline-none cursor-pointer">
+              <option value="Indian">Indian Food 🇮🇳</option>
+              <option value="Italian">Italian Food 🇮🇹</option>
+              <option value="Chinese">Chinese Cuisine 🇨🇳</option>
+              <option value="Mexican">Mexican Food 🇲🇽</option>
+              <option value="Continental">Continental 🍽️</option>
+              <option value="Mediterranean">Mediterranean 🥗</option>
+              <option value="American">American 🥪</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Meal Type *</label>
+            <select id="formCategory" class="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-emerald-500 outline-none cursor-pointer">
+              <option value="Dinner">Dinner</option>
+              <option value="Lunch">Lunch</option>
+              <option value="Breakfast">Breakfast</option>
+              <option value="Snack">Snack</option>
+              <option value="Side Dish">Side Dish</option>
+              <option value="Soup">Soup / Salad</option>
+              <option value="Dessert">Dessert</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Prep Time, Cook Time, Calories -->
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Prep (mins)</label>
+            <input type="number" id="formPrepTime" min="1" value="5" class="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Cook (mins)</label>
+            <input type="number" id="formCookTime" min="1" value="15" class="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Calories (kcal)</label>
+            <input type="number" id="formCalories" min="50" value="320" class="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl outline-none">
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Description / Summary *</label>
+          <textarea 
+            id="formDesc" 
+            rows="2" 
+            required
+            placeholder="Brief mouth-watering description of this dish..."
+            class="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl outline-none"
+          ></textarea>
+        </div>
+
+        <!-- Ingredients Builder -->
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider">Required Ingredients *</label>
+            <button type="button" id="formAddIngRowBtn" class="text-xs text-emerald-600 hover:underline font-bold">+ Add Row</button>
+          </div>
+          <div id="formIngredientsRows" class="space-y-2">
+            <!-- Row template -->
+            <div class="flex items-center gap-2 ing-form-row">
+              <input type="text" placeholder="Ingredient name (e.g. paneer, onion)" class="ing-name flex-1 px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg outline-none" required>
+              <input type="text" placeholder="Amount (e.g. 200g, 1 cup)" class="ing-amount w-32 px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg outline-none" required>
+              <button type="button" class="remove-ing-row text-slate-400 hover:text-red-500 p-1"><i class="fa-solid fa-trash text-xs"></i></button>
+            </div>
+            <div class="flex items-center gap-2 ing-form-row">
+              <input type="text" placeholder="Ingredient name (e.g. tomato, garlic)" class="ing-name flex-1 px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg outline-none" required>
+              <input type="text" placeholder="Amount (e.g. 2 chopped)" class="ing-amount w-32 px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg outline-none" required>
+              <button type="button" class="remove-ing-row text-slate-400 hover:text-red-500 p-1"><i class="fa-solid fa-trash text-xs"></i></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step Instructions -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Cooking Steps (One step per line) *</label>
+          <textarea 
+            id="formSteps" 
+            rows="3" 
+            required
+            placeholder="Heat oil in pan and sauté garlic...&#10;Add tomatoes and simmer for 5 minutes...&#10;Garnish with fresh herbs and serve hot!"
+            class="w-full px-3.5 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl outline-none"
+          ></textarea>
+        </div>
+
+        <!-- Chef Tip & Image URL -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Chef's Secret Tip (optional)</label>
+            <input type="text" id="formChefTip" placeholder="e.g. Don't overcook to preserve crispiness..." class="w-full px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Image URL (optional)</label>
+            <input type="url" id="formImage" placeholder="https://... (or leaves blank for auto image)" class="w-full px-3 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg outline-none">
+          </div>
+        </div>
+
+        <!-- Submit Button in Modal Footer -->
+        <div class="pt-4 border-t border-slate-200 flex items-center justify-end gap-3">
+          <button type="button" id="cancelAddRecipeBtn" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition">Cancel</button>
+          <button type="submit" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/20 transition flex items-center gap-1.5">
+            <i class="fa-solid fa-floppy-disk"></i>
+            <span>Save to Database</span>
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+
+  <!-- ASK CHEF AI SLIDE-OVER / CHAT MODAL -->
+  <div id="chatModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay hidden">
+    <div class="bg-white rounded-3xl max-w-lg w-full h-[620px] flex flex-col shadow-2xl modal-content border border-slate-100 overflow-hidden">
+      
+      <!-- Chat Header -->
+      <div class="p-4 bg-slate-900 text-white flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center text-xl">
+            👨‍🍳
+          </div>
+          <div>
+            <h3 class="font-bold text-sm">Chef Remy AI Assistant</h3>
+            <p class="text-[11px] text-slate-300">Live pantry advisor & recipe finder</p>
+          </div>
+        </div>
+        <button id="closeChatBtn" class="text-slate-400 hover:text-white transition">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Chat Messages Container -->
+      <div id="chatMessages" class="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50 text-sm">
+        <div class="flex items-start gap-2.5">
+          <div class="w-7 h-7 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center text-xs flex-shrink-0">
+            🍳
+          </div>
+          <div class="chat-bubble-agent p-3 text-slate-800 text-xs sm:text-sm">
+            Hello! I am your AI Chef Assistant. Tell me what you feel like cooking, ask for pantry substitutions, check what you cooked yesterday, or tap any quick question below!
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Suggested Questions -->
+      <div class="p-2.5 bg-white border-t border-slate-100 flex items-center gap-1.5 overflow-x-auto text-[11px] text-slate-600 no-scrollbar">
+        <button class="chat-quick-prompt whitespace-nowrap px-2.5 py-1 bg-slate-100 hover:bg-orange-50 hover:text-orange-600 rounded-full transition">🕒 What did I cook recently?</button>
+        <button class="chat-quick-prompt whitespace-nowrap px-2.5 py-1 bg-slate-100 hover:bg-orange-50 hover:text-orange-600 rounded-full transition">⚡ Fast under 15m</button>
+        <button class="chat-quick-prompt whitespace-nowrap px-2.5 py-1 bg-slate-100 hover:bg-orange-50 hover:text-orange-600 rounded-full transition">🇮🇳 Indian dishes</button>
+        <button class="chat-quick-prompt whitespace-nowrap px-2.5 py-1 bg-slate-100 hover:bg-orange-50 hover:text-orange-600 rounded-full transition">🇨🇳 Chinese dishes</button>
+        <button class="chat-quick-prompt whitespace-nowrap px-2.5 py-1 bg-slate-100 hover:bg-orange-50 hover:text-orange-600 rounded-full transition">🔄 Butter substitute?</button>
+      </div>
+
+      <!-- Chat Input Form -->
+      <div class="p-3 bg-white border-t border-slate-200">
+        <form id="chatForm" class="flex items-center gap-2">
+          <input 
+            type="text" 
+            id="chatInput" 
+            placeholder="Ask Chef anything (e.g. What can I make with eggs and garlic?)..." 
+            class="flex-1 px-3.5 py-2 text-xs sm:text-sm bg-slate-100 rounded-xl outline-none focus:bg-white focus:ring-2 focus:ring-orange-400"
+          >
+          <button type="submit" class="w-9 h-9 rounded-xl bg-orange-500 hover:bg-orange-600 text-white flex items-center justify-center transition flex-shrink-0">
+            <i class="fa-solid fa-paper-plane text-xs"></i>
+          </button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="bg-white border-t border-slate-200 py-6 mt-12 text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div class="flex items-center gap-2">
+        <span class="font-serif font-bold text-slate-800">PantryChef AI</span>
+        <span>•</span>
+        <span>Everyday Basic Recipes Recommendation Engine</span>
+      </div>
+      <div>
+        <span>Zero Food Waste • Smart Pantry Matching • Cooking History Tracking</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="recipes.js"></script>
+  <script src="agent.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
