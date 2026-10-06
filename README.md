@@ -5,10 +5,11 @@ A modern web application and food recommendation agent that suggests all classic
 ## 🖼️ Application Screenshots
 
 ### 🏠 PantryChef AI - Home Page
+<img width="2550" height="1348" alt="PantryChef AI Home" src="https://github.com/user-attachments/assets/87d83383-c5b8-4c42-a69b-31fe7518903f" />
 
-![PantryChef AI Home](./e5e37ab7-ba24-4fd5-ae6d-27ef3b762b87.png)
 
-![PantryChef AI History](./4c2d0e14-fd3f-4503-b272-5e445246fdfb.png)
+<img width="2558" height="1410" alt="PantryChef AI History" src="https://github.com/user-attachments/assets/7e2bd717-4e86-46cd-9491-e2a282d22e86" />
+
 
 ---
 
